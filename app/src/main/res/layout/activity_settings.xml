@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D0D1A"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#1A1A2E"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- ═══ FILTER OPTIONS ═══ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="FILTER OPTIONS"
+                android:textColor="#9B2335"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="16dp" />
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Game Version" android:textColor="#AAAACC" android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerVer"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="#1A1A2E" android:layout_marginBottom="16dp"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Region" android:textColor="#AAAACC" android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerRegion"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="#1A1A2E" android:layout_marginBottom="16dp"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Ladder" android:textColor="#AAAACC" android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerLadder"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="#1A1A2E" android:layout_marginBottom="16dp"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Hardcore / Softcore" android:textColor="#AAAACC" android:textSize="14sp"
+                android:layout_marginBottom="4dp"/>
+            <Spinner android:id="@+id/spinnerHC"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:background="#1A1A2E" android:layout_marginBottom="24dp"/>
+
+            <!-- ═══ NOTIFICATION SETTINGS ═══ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="NOTIFY ME WHEN PROGRESS REACHES"
+                android:textColor="#9B2335"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tick each stage you want a notification for."
+                android:textColor="#555577"
+                android:textSize="12sp"
+                android:layout_marginBottom="14dp" />
+
+            <CheckBox android:id="@+id/cbStage1"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 1/6  — Terror gazes upon Sanctuary"
+                android:textColor="#AAAACC" android:textSize="13sp"
+                android:buttonTint="#9B2335" android:paddingStart="8dp"/>
+
+            <CheckBox android:id="@+id/cbStage2"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 2/6  — Terror approaches"
+                android:textColor="#AAAACC" android:textSize="13sp"
+                android:buttonTint="#9B2335" android:paddingStart="8dp"/>
+
+            <CheckBox android:id="@+id/cbStage3"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 3/6  — Terror intensifies"
+                android:textColor="#AAAACC" android:textSize="13sp"
+                android:buttonTint="#9B2335" android:paddingStart="8dp"/>
+
+            <CheckBox android:id="@+id/cbStage4"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 4/6  — Terror all around you"
+                android:textColor="#AAAACC" android:textSize="13sp"
+                android:buttonTint="#9B2335" android:paddingStart="8dp"/>
+
+            <CheckBox android:id="@+id/cbStage5"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 5/6  ⚠ Terror is about to unleash"
+                android:textColor="#FFAA00" android:textSize="13sp"
+                android:buttonTint="#FFAA00" android:paddingStart="8dp"/>
+
+            <CheckBox android:id="@+id/cbStage6"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="Stage 6/6  🔴 Diablo Clone is WALKING!"
+                android:textColor="#FF4444" android:textSize="13sp"
+                android:buttonTint="#FF4444" android:paddingStart="8dp"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Background polling runs every 15 minutes (Android minimum).\nYou will be notified once per progress event per server."
+                android:textColor="#555577"
+                android:textSize="12sp"
+                android:layout_marginBottom="32dp" />
+
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="SAVE SETTINGS"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#9B2335" />
+
+            <TextView
+                android:id="@+id/tvCredit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Data courtesy of diablo2.io"
+                android:textColor="#444466"
+                android:textSize="12sp"
+                android:gravity="center" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
