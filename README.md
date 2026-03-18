@@ -1,19 +1,21 @@
-# D2 Clone Tracker — Android App
+# D2 Clone & Terror Zone Tracker — Android App
 
-A Diablo II Resurrected Diablo Clone (Uber Diablo) tracker for Android that sends push notifications when the progress reaches 5/6 or 6/6.
+A real-time Diablo II Resurrected companion app that tracks Diablo Clone (Uber Diablo) progress and current/upcoming Terror Zones.
 
-> **Data courtesy of [diablo2.io](https://diablo2.io)**
+> **Data courtesy of [diablo2.io](https://diablo2.io) and [d2tz.info](https://d2tz.info)**
 
 ---
 
 ## Features
 
-- 📊 **Live DClone status** — shows all regions, ladder modes, and HC/SC types
-- 🔔 **Push notifications** — alerts at 5/6 (imminent) and 6/6 (walking!)
-- 🌙 **Background polling** — uses WorkManager to check every 15 minutes even when app is closed
-- 🎨 **Dark Diablo-themed UI** — color-coded progress (green / orange / red)
-- ⚙️ **Filters** — filter by region, ladder, and HC/SC
-- 🔄 **Smart deduplication** — won't notify twice for the same event
+- 📊 **Live DClone status** — monitors all regions, ladder modes, and HC/SC types.
+- 🔥 **Terror Zone (TZ) Tracking** — identifies the current and next Terrorized zones using real-time image OCR.
+- 🔔 **Push notifications** — 
+    - Alerts for DClone at user-specified stages (1-6).
+    - Immediate alerts for "Current" and "Next" Terror Zones based on your custom watchlist.
+- 🌙 **Background tracking** — Uses a foreground service with exact alarms to update every 30 minutes (:00:25 and :30:25 marks).
+- ⚙️ **Custom Filters** — Filter by region, ladder, and version (LoD / Resurrected).
+- 🎨 **Dark Diablo-themed UI** — Visual cues and color-coding for status updates.
 
 ---
 
@@ -22,7 +24,7 @@ A Diablo II Resurrected Diablo Clone (Uber Diablo) tracker for Android that send
 ### Requirements
 - Android Studio (Hedgehog or newer)
 - JDK 17
-- Android SDK 34
+- Android SDK 35
 
 ### Steps
 
@@ -30,41 +32,30 @@ A Diablo II Resurrected Diablo Clone (Uber Diablo) tracker for Android that send
 2. **File → Open** → select the `D2CloneTracker` folder
 3. Wait for Gradle sync to complete
 4. Click **▶ Run** (or `Shift+F10`) to install on a connected device/emulator
-5. For a release APK: **Build → Build Bundle(s)/APK(s) → Build APK(s)**
+5. For a release AAB/APK: **Build → Generate Signed Bundle / APK**
 
 ---
 
 ## How It Works
 
-### API
+### DClone API
 The app polls the public [diablo2.io DClone API](https://diablo2.io/dclone_api.php):
-
-```
-GET https://diablo2.io/dclone_api.php?region=1&ladder=2&hc=2
-```
-
-Response example:
-```json
-[
-  {"progress":"5","region":"1","ladder":"2","hc":"2","timestamped":"1650861924"}
-]
-```
-
 - `progress`: 1–6 (6 = Diablo Clone is walking!)
 - `region`: 1=Americas, 2=Europe, 3=Asia
 - `ladder`: 1=Ladder, 2=Non-Ladder  
 - `hc`: 1=Hardcore, 2=Softcore
 
-### Background Work
-- Uses Android **WorkManager** with a 15-minute minimum interval (Android OS limit)
-- Survives device reboots via `BootReceiver`
-- Won't send duplicate notifications for the same event
+### Terror Zone Tracking (OCR)
+Since there is no official API for Terror Zones, the app:
+1. Fetches a real-time status image from `d2tz.info`.
+2. Processes the image using **Google ML Kit (Text Recognition)**.
+3. Uses **fuzzy matching** logic in `TerrorZone.java` to handle the stylized "Exocet" font.
+4. Identifies zones and matches them against your "Watched Groups" in settings.
 
-### Notification Logic
-| Progress | Notification |
-|----------|-------------|
-| 5/6 | ⚠️ Orange alert — "Almost time!" |
-| 6/6 | 🔴 Max priority — "WALKING! Get in a Hell game!" |
+### Background Reliability
+- **Exact Alarms:** Schedules tasks to run exactly 25 seconds after the hour/half-hour mark.
+- **WakeLock:** Ensures the CPU stays awake during the network fetch and OCR process.
+- **Foreground Service:** Keeps the task alive even during system battery optimization.
 
 ---
 
@@ -72,28 +63,29 @@ Response example:
 
 ```
 app/src/main/java/com/d2clone/tracker/
-├── MainActivity.java       — Main screen with live data
-├── SettingsActivity.java   — Filter & notification settings
-├── DCloneAdapter.java      — RecyclerView adapter
-├── DCloneEntry.java        — Data model
-├── DCloneWorker.java       — Background WorkManager task
-└── BootReceiver.java       — Restart polling after reboot
+├── MainActivity.java       — Tabbed layout container
+├── TrackerService.java     — Core background monitoring service
+├── TerrorZone.java         — OCR logic and zone definitions
+├── DCloneWorker.java       — (Legacy) API polling logic
+├── AlarmReceiver.java      — Wakes the app for periodic updates
+└── BootReceiver.java       — Restores tracking after device reboot
 ```
 
 ---
 
 ## Permissions Required
 
-- `INTERNET` — to fetch API data
-- `POST_NOTIFICATIONS` — for push notifications (Android 13+)
-- `RECEIVE_BOOT_COMPLETED` — to restart background polling after reboot
-- `FOREGROUND_SERVICE` — for WorkManager
+- `INTERNET` — to fetch API and image data.
+- `POST_NOTIFICATIONS` — for push alerts (Android 13+).
+- `SCHEDULE_EXACT_ALARM` — for precise timing of zone changes.
+- `FOREGROUND_SERVICE` — to run the tracker reliably.
+- `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` — to prevent the app from being "killed" by the system.
 
 ---
 
-## Fair Use Note
+## Fair Use & Credits
 
-Per diablo2.io's API policy, this app:
-- Credits **diablo2.io** prominently in the UI
-- Queries no more than once per minute
-- Extends the tracker's functionality (mobile push notifications) rather than duplicating it
+Per the respective data providers' policies:
+- Credits **diablo2.io** and **d2tz.info** prominently in the UI.
+- Adheres to standard polling limits (updates every 30 minutes).
+- Extends the community trackers' functionality by providing mobile-native notifications.
