@@ -1,6 +1,6 @@
 # Privacy Policy for D2 Clone Tracker
 
-**Last Updated:** October 2023
+**Last Updated:** March 18, 2026
 
 This privacy policy explains how D2 Clone Tracker ("the App") handles your data. By using the App, you agree to the terms described below.
 
