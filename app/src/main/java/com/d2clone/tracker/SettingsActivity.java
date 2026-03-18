@@ -47,7 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
         setupSpinner(spinnerRegion, new String[]{"All Regions", "Americas", "Europe", "Asia"});
         setupSpinner(spinnerLadder, new String[]{"All Modes", "Ladder", "Non-Ladder"});
         setupSpinner(spinnerHC,     new String[]{"All Types", "Hardcore", "Softcore"});
-        setupSpinner(spinnerVer,    new String[]{"LoD only", "RotW only"});
+        setupSpinner(spinnerVer,    new String[]{"LoD", "RotW"});
 
         // Load saved prefs
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
