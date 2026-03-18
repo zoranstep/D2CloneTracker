@@ -1,5 +1,6 @@
 package com.d2clone.tracker;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,24 +45,31 @@ public class TerrorZone {
     public static boolean isFuzzyMatch(String input, String target) {
         if (input == null || target == null) return false;
         
-        String nInput = input.toLowerCase().replaceAll("[^a-z0-9]", "");
-        String nTarget = target.toLowerCase().replaceAll("[^a-z0-9]", "");
+        // Remove accents and special chars
+        String nInput = normalize(input);
+        String nTarget = normalize(target);
         
         if (nInput.isEmpty() || nTarget.isEmpty()) return false;
 
         // Common Exocet OCR misreadings fix
-        nInput = nInput.replace("1", "m") // M often read as 1 (e.g. "1arsh")
+        nInput = nInput.replace("1", "m") // M often read as 1
                        .replace("0", "o") // 0 as O
-                       .replace("5", "s"); // 5 as S
+                       .replace("5", "s") // 5 as S
+                       .replace("imi", "m") // M as IMI
+                       .replace("nn", "m") // M as NN
+                       .replace("vv", "w") // W as VV
+                       .replace("rn", "m"); // M as RN
 
         if (nInput.equals(nTarget)) return true;
 
         // Exocet Font Fix: remove 'o' from both and compare.
-        // Stylized 'O' is often dropped ("Outer" -> "uter") or misread ("of" -> "f").
         String noOInput = nInput.replace("o", "");
         String noOTarget = nTarget.replace("o", "");
         
         if (!noOInput.isEmpty() && noOInput.equals(noOTarget)) return true;
+
+        // Tristram fix
+        if (nTarget.equals("tristram") && (nInput.contains("tristra") || nInput.contains("tristm"))) return true;
 
         if (noOInput.length() >= 4 && noOTarget.length() >= 4) {
             if (noOInput.contains(noOTarget) || noOTarget.contains(noOInput)) return true;
@@ -70,18 +78,32 @@ public class TerrorZone {
         return false;
     }
 
+    private static String normalize(String s) {
+        if (s == null) return "";
+        // Use Normalizer to remove accents robustly
+        String n = Normalizer.normalize(s, Normalizer.Form.NFD);
+        n = n.replaceAll("[\\u0300-\\u036f]", "");
+        return n.toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
     /**
      * Consolidated logic to find all zones mentioned in a line of OCR text.
      */
     public static List<String> findZonesInText(String text) {
-        String haystack = text.toLowerCase();
+        if (text == null || text.isEmpty()) return new ArrayList<>();
+        
+        // Normalize haystack first to handle accents before stripping
+        String nText = Normalizer.normalize(text, Normalizer.Form.NFD);
+        nText = nText.replaceAll("[\\u0300-\\u036f]", "");
+        String haystack = nText.toLowerCase();
+
         String cleanHaystack = haystack.replaceAll("[^a-z0-9 ]", " ").replaceAll(" +", " ").trim();
         
         List<String> results = new ArrayList<>();
         if (cleanHaystack.isEmpty()) return results;
 
         for (String zone : ALL_ZONES) {
-            String needle = zone.toLowerCase().replaceAll("[^a-z0-9]", "");
+            String needle = normalize(zone);
             if (needle.length() < 3) continue;
             
             if (needle.equals("hole") || needle.equals("pit") || needle.equals("cave")) {
