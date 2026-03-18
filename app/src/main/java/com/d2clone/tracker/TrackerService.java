@@ -66,12 +66,7 @@ public class TrackerService extends Service {
 
         new Thread(() -> {
             try {
-                // Wait 25 seconds for the TZ image to update at the source
-                Log.d(TAG, "Waiting 25s for source update...");
-                Thread.sleep(25000);
                 performUpdate();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             } finally {
                 scheduleNext();
                 if (wakeLock != null && wakeLock.isHeld()) {
@@ -100,42 +95,68 @@ public class TrackerService extends Service {
             String hc     = prefs.getString("hc", "all");
             String ver    = prefs.getString("ver", "all");
 
-            StringBuilder urlBuilder = new StringBuilder("https://diablo2.io/dclone_api.php?");
-            if (!region.equals("all")) urlBuilder.append("region=").append(region).append("&");
-            if (!ladder.equals("all")) urlBuilder.append("ladder=").append(ladder).append("&");
-            if (!hc.equals("all"))     urlBuilder.append("hc=").append(hc).append("&");
-            if (!ver.equals("all"))    urlBuilder.append("ver=").append(ver).append("&");
-            urlBuilder.append("sk=p&sd=d");
+            List<String> urlsToFetch = new ArrayList<>();
+            if (ver.equals("all")) {
+                urlsToFetch.add(buildUrl(region, ladder, hc, "1"));
+                urlsToFetch.add(buildUrl(region, ladder, hc, "2"));
+            } else {
+                urlsToFetch.add(buildUrl(region, ladder, hc, ver));
+            }
 
-            URL url = new URL(urlBuilder.toString());
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            conn.setConnectTimeout(15000);
-            if (conn.getResponseCode() == 200) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) sb.append(line);
-                reader.close();
-
-                JSONArray array = new JSONArray(sb.toString());
-                for (int i = 0; i < array.length(); i++) {
-                    JSONObject obj = array.getJSONObject(i);
-                    int stage = obj.getInt("progress");
-                    long ts = obj.getLong("timestamped");
-                    
-                    String serverKey = obj.getInt("region") + "_" + obj.getInt("ladder") + "_" + obj.getInt("hc") + "_" + obj.optInt("ver", 1);
-                    if (prefs.getBoolean("notify_stage_" + stage, false)) {
-                        String notifyKey = "notified_" + serverKey + "_s" + stage;
-                        if (ts > prefs.getLong(notifyKey, 0)) {
-                            sendDCloneNotification(ctx, stage, serverKey);
-                            prefs.edit().putLong(notifyKey, ts).apply();
-                        }
-                    }
-                }
+            for (String urlStr : urlsToFetch) {
+                fetchAndProcessDClone(ctx, prefs, urlStr);
             }
         } catch (Exception e) {
             Log.e(TAG, "DClone check failed", e);
+        }
+    }
+
+    private String buildUrl(String region, String ladder, String hc, String ver) {
+        StringBuilder urlBuilder = new StringBuilder("https://diablo2.io/dclone_api.php?");
+        if (!region.equals("all")) urlBuilder.append("region=").append(region).append("&");
+        if (!ladder.equals("all")) urlBuilder.append("ladder=").append(ladder).append("&");
+        if (!hc.equals("all"))     urlBuilder.append("hc=").append(hc).append("&");
+        if (!ver.equals("all"))    urlBuilder.append("ver=").append(ver).append("&");
+        urlBuilder.append("sk=p&sd=d");
+        return urlBuilder.toString();
+    }
+
+    private void fetchAndProcessDClone(Context ctx, SharedPreferences prefs, String urlStr) throws Exception {
+        URL url = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+        conn.setConnectTimeout(15000);
+        if (conn.getResponseCode() == 200) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            reader.close();
+
+            JSONArray array = new JSONArray(sb.toString());
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                int stage = obj.getInt("progress");
+                long ts = obj.getLong("timestamped");
+                
+                DCloneEntry entry = new DCloneEntry(
+                        stage,
+                        obj.getInt("region"),
+                        obj.getInt("ladder"),
+                        obj.getInt("hc"),
+                        obj.optInt("ver", 1),
+                        ts
+                );
+
+                String serverKey = entry.region + "_" + entry.ladder + "_" + entry.hc + "_" + entry.ver;
+                if (prefs.getBoolean("notify_stage_" + stage, false)) {
+                    String notifyKey = "notified_" + serverKey + "_s" + stage;
+                    if (ts > prefs.getLong(notifyKey, 0)) {
+                        sendDCloneNotification(ctx, entry);
+                        prefs.edit().putLong(notifyKey, ts).apply();
+                    }
+                }
+            }
         }
     }
 
@@ -209,10 +230,10 @@ public class TrackerService extends Service {
         Intent intent = new Intent(this, AlarmReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         
-        // Calculate next :00 or :30 window
+        // Calculate next :00 or :30 window (at 25 second mark)
         long now = System.currentTimeMillis();
         long thirtyMinutesMillis = 30 * 60 * 1000;
-        long nextTriggerTime = (now / thirtyMinutesMillis + 1) * thirtyMinutesMillis;
+        long nextTriggerTime = (now / thirtyMinutesMillis + 1) * thirtyMinutesMillis + 25000;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (am.canScheduleExactAlarms()) {
@@ -226,21 +247,27 @@ public class TrackerService extends Service {
         Log.d(TAG, "Scheduled next alarm for: " + nextTriggerTime);
     }
 
-    private void sendDCloneNotification(Context ctx, int stage, String server) {
+    private void sendDCloneNotification(Context ctx, DCloneEntry entry) {
         Intent intent = new Intent(ctx, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pi = PendingIntent.getActivity(ctx, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        String title = "🔥 DClone Update: Stage " + entry.progress;
+        String message = entry.getModeLabel();
+
         NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
         Notification notification = new NotificationCompat.Builder(ctx, MainActivity.DCLONE_CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("🔥 DClone Update: Stage " + stage)
-                .setContentText("Server: " + server)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pi)
                 .setAutoCancel(true)
                 .build();
-        nm.notify(("dclone_" + server).hashCode(), notification);
+        
+        String serverKey = entry.region + "_" + entry.ladder + "_" + entry.hc + "_" + entry.ver;
+        nm.notify(("dclone_" + serverKey).hashCode(), notification);
     }
 
     private void sendTZNotification(Context ctx, String group, boolean isCur) {

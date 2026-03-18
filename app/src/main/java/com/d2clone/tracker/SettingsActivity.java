@@ -47,14 +47,17 @@ public class SettingsActivity extends AppCompatActivity {
         setupSpinner(spinnerRegion, new String[]{"All Regions", "Americas", "Europe", "Asia"});
         setupSpinner(spinnerLadder, new String[]{"All Modes", "Ladder", "Non-Ladder"});
         setupSpinner(spinnerHC,     new String[]{"All Types", "Hardcore", "Softcore"});
-        setupSpinner(spinnerVer,    new String[]{"Both (LoD + RotW)", "LoD only", "RotW only"});
+        setupSpinner(spinnerVer,    new String[]{"LoD only", "RotW only"});
 
         // Load saved prefs
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
         spinnerRegion.setSelection(regionToIndex(prefs.getString("region", "all")));
         spinnerLadder.setSelection(ladderToIndex(prefs.getString("ladder", "all")));
         spinnerHC.setSelection(hcToIndex(prefs.getString("hc", "all")));
-        spinnerVer.setSelection(verToIndex(prefs.getString("ver", "all")));
+        
+        String savedVer = prefs.getString("ver", "1");
+        if (savedVer.equals("all")) savedVer = "1"; // Default to LoD if "both" was selected previously
+        spinnerVer.setSelection(verToIndex(savedVer));
 
         for (int s = 1; s <= 6; s++) {
             stageCheckboxes[s].setChecked(prefs.getBoolean("notify_stage_" + s, s >= 5));
@@ -113,10 +116,10 @@ public class SettingsActivity extends AppCompatActivity {
 
     // --- Version ---
     private int verToIndex(String val) {
-        if ("1".equals(val)) return 1; if ("2".equals(val)) return 2; return 0;
+        if ("2".equals(val)) return 1; return 0; // 0=LoD(1), 1=RotW(2)
     }
     private String indexToVer(int i) {
-        if (i == 1) return "1"; if (i == 2) return "2"; return "all";
+        if (i == 1) return "2"; return "1"; // 0=LoD(1), 1=RotW(2)
     }
 
     @Override
