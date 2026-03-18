@@ -36,4 +36,4 @@ The App is designed with security in mind. Since we do not collect personal data
 We may update our Privacy Policy from time to time. You are advised to review this page periodically for any changes.
 
 ## 7. Contact Us
-If you have any questions or suggestions about this Privacy Policy, do not hesitate to contact us at stp.zorn@gmail.com.
+If you have any questions or suggestions about this Privacy Policy, do not hesitate to contact us at gannicusgalvanized@gmail.com.
