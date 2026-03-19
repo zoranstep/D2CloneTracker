@@ -10,8 +10,8 @@ android {
         applicationId "com.d2clone.tracker"
         minSdk 26
         targetSdk 35
-        versionCode 11
-        versionName "2.9"
+        versionCode 12
+        versionName "3.0"
     }
 
     buildTypes {
@@ -27,22 +27,22 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.work:work-runtime:2.9.1'
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
-    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.work:work-runtime:2.11.1'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'com.google.android.gms:play-services-ads:25.1.0'
     
     // Explicitly add guava to resolve the ListenableFuture issue
-    implementation 'com.google.guava:guava:33.0.0-android'
+    implementation 'com.google.guava:guava:33.5.0-android'
 
-    // Glide for image loading
+    // Glide for image loading (kept at 4.x for stability)
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     // Jsoup for scraping
-    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'org.jsoup:jsoup:1.22.1'
 
     // ML Kit Text Recognition
-    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.0'
+    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.1'
 }

@@ -66,7 +66,7 @@ public class TrackerService extends Service {
 
         new Thread(() -> {
             try {
-                performUpdate();
+                performFullUpdate();
             } finally {
                 scheduleNext();
                 if (wakeLock != null && wakeLock.isHeld()) {
@@ -80,12 +80,36 @@ public class TrackerService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void performUpdate() {
+    private void performFullUpdate() {
         Context ctx = getApplicationContext();
         SharedPreferences prefs = ctx.getSharedPreferences("settings", MODE_PRIVATE);
 
+        // Always check DClone once
         checkDClone(ctx, prefs);
-        checkTerrorZones(ctx, prefs);
+
+        // Check Terror Zones with retry logic for the "Next" zone
+        int retryCount = 0;
+        boolean nextFound = false;
+        while (retryCount < 6) { // Retry up to 6 times (3 minutes total)
+            Log.d(TAG, "Checking Terror Zones (Attempt " + (retryCount + 1) + ")...");
+            nextFound = checkTerrorZones(ctx, prefs);
+            
+            // If next found or we are not even watching for next, we can stop
+            if (nextFound || !prefs.getBoolean("tz_alert_next", true)) {
+                break;
+            }
+
+            retryCount++;
+            if (retryCount < 6) {
+                try {
+                    Log.d(TAG, "Next TZ unknown, retrying in 30s...");
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
     }
 
     private void checkDClone(Context ctx, SharedPreferences prefs) {
@@ -160,10 +184,13 @@ public class TrackerService extends Service {
         }
     }
 
-    private void checkTerrorZones(Context ctx, SharedPreferences prefs) {
+    /**
+     * @return true if the Next zone was successfully identified
+     */
+    private boolean checkTerrorZones(Context ctx, SharedPreferences prefs) {
         try {
             Set<String> watchedGroups = prefs.getStringSet("tz_watched_groups", null);
-            if (watchedGroups == null || watchedGroups.isEmpty()) return;
+            if (watchedGroups == null || watchedGroups.isEmpty()) return false;
 
             URL url = new URL(TZ_IMAGE_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -171,7 +198,7 @@ public class TrackerService extends Service {
             connection.setConnectTimeout(15000);
             InputStream input = connection.getInputStream();
             Bitmap bitmap = BitmapFactory.decodeStream(input);
-            if (bitmap == null) return;
+            if (bitmap == null) return false;
 
             InputImage image = InputImage.fromBitmap(bitmap, 0);
             TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
@@ -208,8 +235,11 @@ public class TrackerService extends Service {
                 checkAndNotify(ctx, prefs, watchedGroups, nextGroup.name, bucket, false);
             }
 
+            return nextGroup != null; // Return true if we actually found a zone for Next
+
         } catch (Exception e) {
             Log.e(TAG, "TZ check failed", e);
+            return false;
         }
     }
 
@@ -284,7 +314,10 @@ public class TrackerService extends Service {
                 .setContentIntent(pi)
                 .setAutoCancel(true)
                 .build();
-        nm.notify(group.hashCode(), notification);
+        
+        // Use unique IDs for Current (1xxx) and Next (20xxx) to avoid overwriting each other
+        int notifId = (isCur ? 10000 : 20000) + Math.abs(group.hashCode() % 10000);
+        nm.notify(notifId, notification);
     }
 
     @Nullable @Override public IBinder onBind(Intent intent) { return null; }

@@ -58,7 +58,8 @@ public class TerrorZone {
                        .replace("imi", "m") // M as IMI
                        .replace("nn", "m") // M as NN
                        .replace("vv", "w") // W as VV
-                       .replace("rn", "m"); // M as RN
+                       .replace("rn", "m") // M as RN
+                       .replace("santuary", "sanctuary"); // Misreading for Sanctuary
 
         if (nInput.equals(nTarget)) return true;
 
