@@ -8,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         startTrackerAlarm();
         checkNotificationPermission();
         checkBatteryOptimizations();
+        checkHuaweiAppLaunch();
     }
 
     private void checkNotificationPermission() {
@@ -158,5 +160,43 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("Later", null)
                     .show();
         }
+    }
+
+    private void checkHuaweiAppLaunch() {
+        String manufacturer = Build.MANUFACTURER.toUpperCase();
+        if (!manufacturer.contains("HUAWEI") && !manufacturer.contains("HONOR")) {
+            return;
+        }
+
+        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        if (prefs.getBoolean("skip_huawei_warning", false)) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Background Stability")
+                .setMessage("App launch is managed automatically. In order to make the tracker stable and on time, please turn it off and make sure that 'Run in background' is toggled ON (Settings > Battery > App Launch).")
+                .setPositiveButton("Settings", (dialog, which) -> {
+                    try {
+                        Intent intent = new Intent();
+                        intent.setClassName("com.huawei.systemmanager", "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity");
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        try {
+                            Intent intent = new Intent();
+                            intent.setClassName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity");
+                            startActivity(intent);
+                        } catch (Exception e2) {
+                            try {
+                                startActivity(new Intent(Settings.ACTION_SETTINGS));
+                            } catch (Exception e3) {}
+                        }
+                    }
+                })
+                .setNeutralButton("Don't show again", (dialog, which) -> {
+                    prefs.edit().putBoolean("skip_huawei_warning", true).apply();
+                })
+                .setNegativeButton("Later", null)
+                .show();
     }
 }
