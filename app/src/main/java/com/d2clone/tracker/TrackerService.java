@@ -55,7 +55,6 @@ public class TrackerService extends Service {
                 .setContentTitle("D2 Clone Tracker")
                 .setContentText("Checking for updates...")
                 .setSmallIcon(android.R.drawable.ic_popup_sync)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
                 .build();
 
         startForeground(999, notification);
@@ -291,7 +290,6 @@ public class TrackerService extends Service {
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pi)
                 .setAutoCancel(true)
                 .build();
@@ -310,7 +308,6 @@ public class TrackerService extends Service {
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(isCur ? "🔥 Terror Zone NOW" : "⏰ Next Terror Zone")
                 .setContentText(group + (isCur ? " is terrorized!" : " is next."))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pi)
                 .setAutoCancel(true)
                 .build();

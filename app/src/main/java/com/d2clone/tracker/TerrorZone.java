@@ -59,6 +59,7 @@ public class TerrorZone {
                        .replace("nn", "m") // M as NN
                        .replace("vv", "w") // W as VV
                        .replace("rn", "m") // M as RN
+                       .replace("ii", "m") // M as II
                        .replace("santuary", "sanctuary"); // Misreading for Sanctuary
 
         if (nInput.equals(nTarget)) return true;
