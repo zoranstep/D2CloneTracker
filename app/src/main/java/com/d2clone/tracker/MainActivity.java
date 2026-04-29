@@ -28,6 +28,8 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import androidx.activity.EdgeToEdge;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String DCLONE_CHANNEL_ID = "dclone_alerts";
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -58,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(adapter);
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            if (position == 0) tab.setText("DClone");
-            else tab.setText("Terror Zones");
+            tab.setText(position == 0 ? "DClone" : "Terror Zones");
         }).attach();
 
         // Cancel old WorkManager tasks and move to AlarmManager
@@ -79,14 +81,8 @@ public class MainActivity extends AppCompatActivity {
                     .setMessage("You have disabled notifications for this app. You will not receive any alerts for DClone or Terror Zones until you enable them in settings.")
                     .setPositiveButton("Settings", (dialog, which) -> {
                         Intent intent = new Intent();
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-                            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-                        } else {
-                            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-                            intent.putExtra("app_package", getPackageName());
-                            intent.putExtra("app_uid", getApplicationInfo().uid);
-                        }
+                        intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
                         startActivity(intent);
                     })
                     .setNegativeButton("Ignore", null)
@@ -189,13 +185,13 @@ public class MainActivity extends AppCompatActivity {
                         } catch (Exception e2) {
                             try {
                                 startActivity(new Intent(Settings.ACTION_SETTINGS));
-                            } catch (Exception e3) {}
+                            } catch (Exception e3) {
+                                // Fallback failed, nothing more we can do
+                            }
                         }
                     }
                 })
-                .setNeutralButton("Don't show again", (dialog, which) -> {
-                    prefs.edit().putBoolean("skip_huawei_warning", true).apply();
-                })
+                .setNeutralButton("Don't show again", (dialog, which) -> prefs.edit().putBoolean("skip_huawei_warning", true).apply())
                 .setNegativeButton("Later", null)
                 .show();
     }

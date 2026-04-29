@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">D2R Tracker</string>
+    <string name="data_credit">Data courtesy of diablo2.io</string>
 </resources>

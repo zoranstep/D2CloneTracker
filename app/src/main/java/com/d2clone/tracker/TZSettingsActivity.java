@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -19,12 +20,12 @@ import java.util.Set;
 
 public class TZSettingsActivity extends AppCompatActivity {
 
-    private LinearLayout zoneListContainer;
     private CheckBox cbAlertCurrent, cbAlertNext;
     private final CheckBox[] groupCheckboxes = new CheckBox[TerrorZone.GROUPS.length];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tz_settings);
 
@@ -37,7 +38,7 @@ public class TZSettingsActivity extends AppCompatActivity {
 
         cbAlertCurrent = findViewById(R.id.cbAlertCurrent);
         cbAlertNext = findViewById(R.id.cbAlertNext);
-        zoneListContainer = findViewById(R.id.zoneListContainer);
+        LinearLayout zoneListContainer = findViewById(R.id.zoneListContainer);
         EditText etSearch = findViewById(R.id.etSearch);
         Button btnSelectAll = findViewById(R.id.btnSelectAll);
         Button btnClearAll = findViewById(R.id.btnClearAll);
@@ -101,7 +102,7 @@ public class TZSettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        onBackPressed();
+        getOnBackPressedDispatcher().onBackPressed();
         return true;
     }
 }

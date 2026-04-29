@@ -71,7 +71,7 @@ public class TrackerService extends Service {
                 if (wakeLock != null && wakeLock.isHeld()) {
                     wakeLock.release();
                 }
-                stopForeground(true);
+                stopForeground(STOP_FOREGROUND_REMOVE);
                 stopSelf();
             }
         }).start();

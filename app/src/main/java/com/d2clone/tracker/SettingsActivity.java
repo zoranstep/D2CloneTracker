@@ -9,16 +9,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Objects;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 public class SettingsActivity extends AppCompatActivity {
 
     private Spinner spinnerRegion, spinnerLadder, spinnerHC, spinnerVer;
-    private CheckBox[] stageCheckboxes = new CheckBox[7]; // index 1-6
+    private final CheckBox[] stageCheckboxes = new CheckBox[7]; // index 1-6
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
@@ -56,14 +60,14 @@ public class SettingsActivity extends AppCompatActivity {
         spinnerHC.setSelection(hcToIndex(prefs.getString("hc", "all")));
         
         String savedVer = prefs.getString("ver", "1");
-        if (savedVer.equals("all")) savedVer = "1"; // Default to LoD if "both" was selected previously
+        if (Objects.equals(savedVer, "all")) savedVer = "1"; // Default to LoD if "both" was selected previously
         spinnerVer.setSelection(verToIndex(savedVer));
 
         for (int s = 1; s <= 6; s++) {
             stageCheckboxes[s].setChecked(prefs.getBoolean("notify_stage_" + s, s >= 5));
         }
 
-        tvCredit.setText("Data courtesy of diablo2.io");
+        tvCredit.setText(R.string.data_credit);
 
         btnSave.setOnClickListener(v -> {
             SharedPreferences.Editor editor = prefs.edit();
@@ -124,7 +128,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        onBackPressed();
+        getOnBackPressedDispatcher().onBackPressed();
         return true;
     }
 }
